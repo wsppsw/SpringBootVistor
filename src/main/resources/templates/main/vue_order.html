@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>订单</title>
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+</head>
+<body>
+	<div id="app">
+		{{getOrder()}}
+<el-table :data="tableData" @row-click="clickRow"  @selection-change="handleSelectionChange">
+      	<el-table-column prop="p_name" label="景区名称" width="100">
+        </el-table-column>
+        <el-table-column prop="p_address" label="景区地址" width="200">
+        </el-table-column>
+        <el-table-column prop="p_date" label="日期" width="150">
+        </el-table-column>
+        <el-table-column prop="p_type" label="票价" >
+        </el-table-column>
+        <el-table-column label="预定" width="180">
+        	<template slot-scope="scope">
+        	 <el-button type="warning" @click="cancel(scope.row)" >取消订票</el-button>
+  	 	 	</template>
+        </el-table-column>
+      </el-table>
+	</div>
+</body>
+<script type="text/javascript">
+new Vue({
+	el:"#app",
+	data:{
+		tableData:[
+			{
+				s_id:"",
+				p_name:"",
+				p_address:"",
+				p_date:"",
+				p_type:"",
+			}
+		],
+		flag1:true,//获取订单
+	},
+	methods:{
+		getOrder(){
+			var that = this;
+			if(that.flag1) {
+				axios.post("/user/queryOrder")
+						.then(function (response) {
+							if (response.data != null) {
+								that.flag1 = false;
+								that.tableData = response.data;
+							}
+						}, function (err) {
+							alert(err);
+						});
+			}
+		},
+		cancel(row){
+			var id = row.s_id;
+			var date = row.p_date;
+			var type = row.p_type;
+			var that = this;
+			this.$confirm('是否退订此景点门票?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'success'
+			}).then(() => {
+				axios.post("/cancelTicket","sid="+id+"&date="+date+"&type="+type)
+						.then(function (response) {
+							if (response.data != null) {
+								that.tableData = response.data;
+								that.$message({
+									type: 'success',
+									message: '退订成功!',
+								});
+							}
+						}, function (err) {
+							alert(err);
+						});
+			}).catch(() => {
+				this.$message({
+					type: 'warning',
+					message: '取消退订'
+				});
+			});
+		},
+	}
+})
+</script>
+</html>

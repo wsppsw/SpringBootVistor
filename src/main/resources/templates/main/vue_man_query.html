@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>查看列表</title>
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+</head>
+<body>
+	<div id="app" v-loading.fullscreen.lock="fullscreenLoading">
+		{{getScenic()}}
+		{{openFullScreen()}}
+		{{created()}}
+	<el-col :span="4">
+   		<el-input clearable placeholder="请输入内容" v-model="input" ></el-input>
+  	</el-col>
+    	<el-button type="primary" icon="el-icon-search" @click="find">搜索</el-button>
+		<span style="color: #F56C6C; font-size: 10px; margin-left: 20px;" >{{err}}</span>
+	<el-table :data="Scenic" @row-click="clickRow"  @selection-change="handleSelectionChange">
+		<el-table-column prop="s_id" label="编号" >
+		</el-table-column>
+		<el-table-column prop="s_name" label="景区名" width="140">
+        </el-table-column>
+        <el-table-column prop="s_address" label="地址" width="350">
+        </el-table-column>
+        <el-table-column prop="s_city" label="所在县市" width="100">
+        </el-table-column>
+        <el-table-column prop="s_score" label="评分" width="100">
+        </el-table-column>
+		</el-table-column>
+		<el-table-column prop="s_price" label="价格" >
+		</el-table-column>
+        <el-table-column label="操作" width="180">
+        	<template slot-scope="scope">
+        	 <el-button type="warning" @click="modify(scope.row)" >修改</el-button>
+  	 	 	 <el-button type="danger"  @click="del(scope.row)" >下架</el-button>
+  	 	 	</template>
+        </el-table-column>
+      </el-table>
+		<el-dialog title="景点信息" :visible.sync="dialogVisible" width="800px" height="1000px">
+			<el-form :model="form" ref="form" size="small">
+				<el-form-item label="景点名称" :label-width="formLabelWidth" :rules="[
+           { required: true, message: '景点名称不能为空！', trigger: 'blur' },
+           { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+          ]">
+					<el-col :span="8">
+					<el-input v-model="form.s_name" autocomplete="off"></el-input>
+					</el-col>
+				</el-form-item>
+				<el-form-item label="景点地址" :label-width="formLabelWidth" :rules="[
+          { required: true, message: '景点地址不能为空！', trigger: 'blur' },
+          { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+         ]">
+					<el-col :span="18">
+					<el-input v-model="form.s_address" autocomplete="off"></el-input>
+					</el-col>
+				</el-form-item>
+				<el-form-item label="所在县市" :label-width="formLabelWidth" :rules="[
+           { required: true, message: '所在县市不能为空！', trigger: 'blur' },
+           { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+          ]">
+					<el-col :span="8">
+						<el-input v-model="form.s_city" autocomplete="off"></el-input>
+					</el-col>
+				</el-form-item>
+				<el-form-item label="景点评分" :label-width="formLabelWidth" :rules="[
+          { required: true, message: '景点评分不能为空！', trigger: 'blur' },
+          { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+         ]">
+					<el-col :span="8">
+						<el-input v-model="form.s_score" autocomplete="off"></el-input>
+					</el-col>
+				</el-form-item>
+				<el-form-item label="景点票价" :label-width="formLabelWidth" rules="[
+          { required: true, message: '景点票价不能为空！', trigger: 'blur' },
+          { pattern: /^[0-9]+$/, message: '格式错误！', trigger: 'blur' },
+          { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+         ]">
+					<el-col :span="8">
+						<el-input v-model="form.s_price" autocomplete="off"></el-input>
+					</el-col>
+				</el-form-item>
+				<el-form-item label="开发时间" :label-width="formLabelWidth" :rules="[
+          { required: true, message: '起始时间不能为空！', trigger: 'blur' }
+         ]" >
+					<el-col :span="8">
+						<el-input v-model="form.s_time" autocomplete="off"></el-input>
+					</el-col>
+				</el-form-item>
+				<el-form-item label="景点简介" :label-width="formLabelWidth" :rules="[
+          { required: true, message: '景点介绍不能为空！', trigger: 'blur' }
+         ]">
+					<el-col :span="18">
+						<el-input  type="textarea" autosize v-model="form.s_introduce" autocomplete="off"></el-input>
+					</el-col>
+				</el-form-item>
+				<el-form-item >
+					<el-image style="width: 100px; height: 100px; margin-left:100px;" :src="dialogImageUrl1" :fit="cover" @click="getimg(dialogImageUrl1)"></el-image>
+					<el-image style="width: 100px; height: 100px" :src="dialogImageUrl2" :fit="cover" @click="getimg(dialogImageUrl2)"></el-image>
+					<el-image style="width: 100px; height: 100px" :src="dialogImageUrl3" :fit="cover" @click="getimg(dialogImageUrl3)"></el-image>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="dialogVisible = false">取 消</el-button>
+				<el-button type="primary" @click="realModify('form')">确 定</el-button>
+			</div>
+		</el-dialog>
+		<el-dialog title="图片大图" :visible.sync="dialogimg" width="700px" height="400px">
+			<el-image style="width: 600px; height: 400px" :src="dialogImageUrl" ></el-image>
+		</el-dialog>
+      <div style="text-align: center;">
+      <el-button-group >
+ 		 <el-button type="primary" icon="el-icon-arrow" @click="getFirst">首页</el-button>
+ 	  </el-button-group>
+      <el-button-group v-for="page in pages" :key="page">
+ 		  <el-button type="primary" icon="el-icon-arrow" @click="getList(page)" >{{page}}页</el-button>
+ 		</el-button-group>
+ 		<el-button-group >
+  		<el-button type="primary" icon="el-icon-arrow-rihgt" @click="getLast">尾页</el-button>
+  		</el-button-group>
+  		</div>
+	</div>
+</body>
+<script type="text/javascript">
+new Vue({
+	el:"#app",
+	data:{
+		input:"",
+		Scenic:[
+		{
+			s_id:"",
+			s_name:"",
+			s_address:"",
+			s_score:"",
+			s_city:"",
+			s_price:"",
+			s_introduce:"",
+			s_coordinate:"",
+			s_time:"",
+			s_imgsrc:"",
+		}
+		],
+		form: {
+			s_id:"",
+			s_name:"",
+			s_address:"",
+			s_score:"",
+			s_city:"",
+			s_price:"",
+			s_introduce:"",
+			s_coordinate:"",
+			s_time:"",
+			s_imgsrc:"",
+		},
+		formLabelWidth: '100px',
+		pageSize:"6",//一页显示数量
+		pageNum:"1",//当前页码
+		pages:[],//总共页数
+		pageFirst:"",//首页
+		pageLast:"",//尾页
+		fullscreenLoading:true,
+		flagg:true,//加载
+		flag1:true,//获取Scenic
+		err:"",//查询报错
+		dialogVisible:false,
+		dialogImageUrl1:"",
+		dialogImageUrl2:"",
+		dialogImageUrl3:"",
+		dialogImageUrl:"",
+		dialogimg:false,
+	},
+	methods:{
+		created(){
+			var that = this;
+			document.onkeydown = function(e){
+				var key = window.event.keyCode;
+				if(key == 13){
+					that.find();
+				}
+			}
+		},
+		getimg(img){
+			var img =img;
+			this.dialogImageUrl=img;
+			this.dialogimg=true;
+		},
+		realModify(form){
+			var that =this;
+			this.$refs[form].validate((valid) => {
+				if (valid) {
+					that.$confirm('确定修改此景点信息?', '提示', {
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+						type: 'success'
+					}).then(() => {
+						axios.post("/modifyScenic","s_id="+that.form.s_id+"&s_name="+that.form.s_name+"&s_address="+that.form.s_address+"&s_city="+that.form.s_city+"&s_coordinate="+that.form.s_coordinate+"&s_score="+that.form.s_score+"&s_price="+that.form.s_price+"&s_introduce="+that.form.s_introduce+"&s_time="+that.form.s_time+"&s_imgsrc="+that.form.s_imgsrc)
+								.then(function (response) {
+									if (response.data == true) {
+										that.getList(that.pageNum);
+										that.dialogVisible=false;
+										that.$message({
+											type: 'success',
+											message: '修改成功!'
+										});
+									}else {
+										that.$message({
+											type: 'warning',
+											message: '修改失败!'
+										});
+									}
+								}, function (err) {
+									alert(err);
+								});
+					}).catch(() => {
+						that.$message({
+							type: 'warning',
+							message: '取消修改'
+						});
+					});
+				} else {
+					console.log('error submit!!');
+					return false;
+				}
+			});
+		},
+		openFullScreen() {
+			if(this.flagg){
+				this.flagg=false;
+				this.fullscreenLoading = true;
+				setTimeout(() => {
+					this.fullscreenLoading = false;
+				}, 1000);
+			}
+		},
+		modify(index){
+			var that = this;
+			var id = index.s_id;
+			var name= index.s_name;
+			var address = index.s_address;
+			var city = index.s_city;
+			var price = index.s_price;
+			var score = index.s_score;
+			var time = index.s_time;
+			var coordinate = index.s_coordinate;
+			var introduce = index.s_introduce;
+			var imgsrc= index.s_imgsrc;
+			this.form.s_id=id;
+			this.form.s_name =name;
+			this.form.s_address=address;
+			this.form.s_city=city;
+			this.form.s_score=score;
+			this.form.s_price=price;
+			this.form.s_time=time;
+			this.form.s_coordinate=coordinate;
+			this.form.s_introduce=introduce;
+			this.form.s_imgsrc=imgsrc;
+			var str = imgsrc.split(",");
+			this.dialogImageUrl1="../imgs/"+str[0];
+			this.dialogImageUrl2="../imgs/"+str[1];
+			this.dialogImageUrl3="../imgs/"+str[2];
+			this.dialogVisible=true;
+		},
+		del(index){
+			var sid = index.s_id;
+			var that = this;
+			that.$confirm('确定订购此景点门票?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'success'
+			}).then(() => {
+				axios.post("/delScenic","sid=" + sid)
+						.then(function (response) {
+							if (response.data == true) {
+								that.getList(that.pageNum);
+								that.$message({
+									type: 'success',
+									message: '下架成功!'
+								});
+							}else {
+								that.$message({
+									type: 'error',
+									message: '此景点存在订单,无法下架,请联系用户退款取消订单后再下架该景点!'
+								});
+							}
+						}, function (err) {
+							alert(err);
+						});
+			}).catch(() => {
+				that.$message({
+					type: 'warning',
+					message: '取消下架'
+				});
+			});
+
+		},
+		getScenic() {
+			var that = this;
+			if(that.flag1){
+				that.flag1=false;
+				axios.post("/hotPage","pageNum=" + that.pageNum + "&pageSize=" + that.pageSize)
+						.then(function(response){
+							that.Scenic = response.data.list;
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+						},function(err){
+							alert(err);
+				});
+			}
+		},
+		getList(page){
+			var that = this;
+			var page = page;
+			that.pageNum=page;
+			if(that.input=="") {
+				axios.post("/hotPage", "pageNum=" + page + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.Scenic = response.data.list;
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.Scenic);
+						}, function (err) {
+							alert(err);
+						});
+			}else {
+				axios.post("/findPage","key="+that.input+"&pageNum=" + page + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.Scenic = response.data.list;
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.Scenic);
+						}, function (err) {
+							alert(err);
+						});
+			}
+		},
+		getFirst(){
+			var that = this;
+			if(that.input=="") {
+				axios.post("/hotPage", "pageNum=" + that.pageFirst + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.Scenic = response.data.list;
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.Scenic);
+						}, function (err) {
+							alert(err);
+						});
+			}else {
+				axios.post("/findPage","key="+that.input+"&pageNum=" + that.pageFirst + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.Scenic = response.data.list;
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.Scenic);
+						}, function (err) {
+							alert(err);
+						});
+			}
+		},
+		getLast(){
+			var that = this;
+			if(that.input=="") {
+				axios.post("/hotPage", "pageNum=" + that.pageLast + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.Scenic = response.data.list;
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.Scenic);
+						}, function (err) {
+							alert(err);
+						});
+			}else {
+				axios.post("/findPage","key="+that.input+"&pageNum=" + that.pageLast + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.Scenic = response.data.list;
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.Scenic);
+						}, function (err) {
+							alert(err);
+						});
+			}
+		},
+		find(){
+			var that = this;
+			axios.post("/findPage","key="+that.input+"&pageNum=" + that.pageNum + "&pageSize=" + that.pageSize)
+					.then(function (response) {
+						that.Scenic = response.data.list;
+						if(response.data.prePage==1){
+							that.err="检索失败,为查询到相关信息";
+							that.input="";
+						}else {
+							that.err="";
+						}
+						that.pages = response.data.navigatepageNums;
+						that.pageFirst = response.data.navigateFirstPage;
+						that.pageLast = response.data.navigateLastPage;
+						console.log(that.Scenic);
+					}, function (err) {
+						alert(err);
+					});
+		},
+	}
+})
+</script>
+</html>

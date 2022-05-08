@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>忘记密码</title>
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+	<style type="text/css">
+	.el-header,.el-footer {
+     background-color: #409EFF;
+      width: 100%; 
+   }
+   .el-main{
+    background-color: white;
+    width: 100%;
+    height: 500px;
+   }
+    .el-footer p{
+      text-align: center;
+    }
+	#div3{
+	
+		width: 600px;
+		height: 400px;
+		margin-left: 350px; 
+	}
+	.el-link{
+		margin-left: 10px;
+	}
+	
+	</style>
+</head>
+<body>
+	<div id="div">
+        {{created()}}
+<el-container>
+  <el-header>
+   <p><marquee  direction="left" style="color: white; font-size: 20px;">正在找回密码中。。。</marquee></p>
+  </el-header>
+  <el-main>
+      <div id="div3">
+      <div id="div2" >
+        <el-form :model="userForm" status-icon  ref="userForm" size="medium" label-width="100px" style="margin-left: 20px; margin-top: 50px;  ">
+            <span style="color: #F56C6C; font-size: 10px; margin-left: 100px;" >{{nameerr}}</span>
+            <el-form-item label="账号" prop="username" :rules="[
+           { required: true, message: '用户号不能为空！', trigger: 'blur' },
+           { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+          ]">
+          <el-col :span="8">
+          <el-input   clearable placeholder="请输入用户名" v-model="userForm.username" ></el-input>
+          </el-col>
+         </el-form-item>
+            <span style="color: #F56C6C; font-size: 10px; margin-left: 100px;" >{{phoneerr}}</span>
+          <el-form-item label="预留手机号" prop="userphone" :rules="[
+           { required: true, message: '手机号不能为空！', trigger: 'blur' },
+          { type: 'number', message: '手机号格式错误！', trigger: ['blur', 'change'] },
+          { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'},
+          { pattern: /^[1][3|4|5|7|8|9][0-9]{9}$/, message: '手机号格式错误'}
+          ]">
+          <el-col :span="10">
+          <el-input  clearable placeholder="请输入手机号" v-model.number="userForm.userphone" ></el-input>
+          </el-col>
+          <el-link type="primary" @click="sendPhone" :underline="false" :disabled="disabled">{{code}}</el-link>
+          
+         </el-form-item>
+            <span style="color: #F56C6C; font-size: 10px; margin-left: 100px;" >{{codeerr}}</span>
+         <el-form-item label="验证码" prop="c_code" :rules="[
+          { required: true, message: '验证码不能为空！', trigger: 'blur' },
+          { min: 4, message: '请输入4个长度的验证码', trigger: 'blur'}
+         ]"> 
+         <el-col :span="8">
+          <el-input   clearable placeholder="请输入验证码" v-model="userForm.c_code" ></el-input>
+          </el-col>
+         </el-form-item>
+          <el-button type="primary" style="margin-left: 100px;" @click="submitForm('userForm')">验证</el-button>
+      </el-form-item>
+       </el-form>
+      </div>
+      </div>
+  </el-main>
+  <el-footer>
+    <p style="color: white;">@Copyright 2021 - 2022</p>
+  </el-footer>
+</el-container>
+	</div>
+</body>
+<script type="text/javascript">
+new Vue({
+	el:"#div",
+	data:{
+		userForm:{
+			username:"",
+			userphone:"",
+			c_code:"",
+		},
+		code:"点击获取验证码",
+        disabled:false,
+        nameerr:"",
+        phoneerr:"",
+        codeerr:"",
+	},
+	methods:{
+        created(){
+            var that = this;
+            document.onkeydown = function(e){
+                var key = window.event.keyCode;
+                if(key == 13){
+                    that.submitForm('userForm');
+                }
+            }
+        },
+		submitForm(userForm){
+		var that = this;
+        this.$refs[userForm].validate((valid) => {
+          if (valid) {
+              axios.post("/ForgetUser","phone="+that.userForm.userphone+"&username="+that.userForm.username+"&code="+that.userForm.c_code)
+                  .then(function(response){
+                      if(response.data == "用户名不存在!"){
+                         that.nameerr="用户名不存在!";
+                          that.phoneerr="";
+                          that.codeerr="";
+                      }else if(response.data == "预留手机号不正确!"){
+                         that.phoneerr="预留手机号不正确!";
+                          that.nameerr="";
+                          that.codeerr="";
+                      }else if(response.data == "验证码不正确!"){
+                          that.codeerr="验证码不正确!";
+                          that.nameerr="";
+                          that.phoneerr="";
+                      }else {
+                          location.href="/forgetAndmodfiy?username="+that.userForm.username;
+                      }
+                  },function(err){
+                      alert(err);
+                  });
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
+		},
+		sendPhone(){
+        let seconds = 60;
+        var that = this;
+        if(that.userForm.userphone==""){
+            that.phoneerr="预留手机号不能为空!";
+            that.nameerr="";
+            that.codeerr="";
+        }else {
+            axios.post("/sendPhoneForget", "phone=" + that.userForm.userphone + "&name=" + that.userForm.username)
+                .then(function (response) {
+                    if (response.data == false) {
+                        that.phoneerr = "预留手机号不正确!";
+                        that.nameerr = "";
+                        that.codeerr = "";
+                    } else {
+                        that.disabled = true;
+                        that.code = "已经发送(" + seconds + "s)";
+                        alert(response.data);
+                        var time = setInterval(function () {
+                            seconds = seconds - 1;
+                            that.disabled = true;
+                            that.code = "已经发送(" + seconds + "s)";
+                            let i = seconds;
+                            if (i < 0) {
+                                i = 1;
+                                clearInterval(time);
+                                that.disabled = false;
+                                that.code = "点击获取验证码";
+
+                            }
+                        }, 1000);
+                    }
+                }, function (err) {
+                    alert(err);
+                });
+        }
+		},
+    
+	}
+})
+</script>
+</html>

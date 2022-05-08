@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.spring_system.mapper.OrderMapper">
+
+    <select id="findallorder" resultType="com.example.spring_system.domain.Order" >
+    select * from t_order
+    </select>
+
+    <select id="findorderbyuid" resultType="com.example.spring_system.domain.Order" parameterType="Integer">
+        select * from t_order where u_id = #{u_id}
+    </select>
+
+    <select id="findorderbysid" resultType="com.example.spring_system.domain.Order" parameterType="Integer">
+        select * from t_order where s_id = #{s_id}
+    </select>
+
+    <select id="findorderbyids" resultType="com.example.spring_system.domain.Order" parameterType="Integer">
+        select * from t_order where u_id = #{u_id} and s_id=#{s_id}
+    </select>
+
+    <insert id="addorder" parameterType="com.example.spring_system.domain.Order">
+    insert into t_order values (#{o_id},#{u_id},#{s_id},#{o_date},#{o_type})
+    </insert>
+
+    <delete id="deleteorder" parameterType="com.example.spring_system.domain.Order">
+        delete from t_order where u_id=#{u_id} and s_id=#{s_id} and o_date=#{o_date} and o_type=#{o_type}
+    </delete>
+
+    <delete id="deleteorderbysid" parameterType="com.example.spring_system.domain.Order">
+        delete from t_order where s_id=#{s_id}
+    </delete>
+
+</mapper>

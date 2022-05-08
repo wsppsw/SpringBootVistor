@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>添加</title>
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=vE5EkHqq2Q6wMRIdX8FSGChnEKj982mw"></script>
+    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+	<style type="text/css">
+	#div1{
+		float: left;
+		width: 600px;
+		height: 800px;
+		background-color: white;
+		margin-left: 300px; 
+		border-radius: 30px;
+	}
+	.el-button{
+		margin-top: 15px; 
+	}
+	#mapp{
+		width: 100px;
+		height: 100px;
+		float: left;
+		background-color: yellow;
+		display: none;
+	}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<div id="div1">
+		<el-form :model="ruleForm" status-icon  ref="ruleForm" size="medium" label-width="100px">
+          <el-form-item label="景点名称" prop="s_name" :rules="[
+           { required: true, message: '景点名称不能为空！', trigger: 'blur' },
+           { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+          ]">
+          <el-col :span="8">
+          <el-input  clearable placeholder="请输入景点名称" v-model="ruleForm.s_name" ></el-input>
+          </el-col>
+         </el-form-item>
+         <el-form-item label="景点地址" prop="s_address" :rules="[
+          { required: true, message: '景点地址不能为空！', trigger: 'blur' },
+          { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+         ]"> 
+          <el-col :span="16">
+          <el-input  clearable placeholder="请输入景点地址" v-model="ruleForm.s_address" id="place"></el-input>
+          </el-col>
+           <el-link type="primary"  :underline="false" id="getzuobiao">点击获取坐标</el-link>
+         </el-form-item>
+         </el-form-item>
+         <el-form-item label="景点坐标" prop="s_coordinate" >
+          <el-col :span="10">
+          <el-input  clearable placeholder="请输入景点坐标" v-model="ruleForm.s_coordinate" id="zuobiao" ></el-input>
+          </el-col>
+         </el-form-item>
+            <el-form-item label="所在城市" prop="s_city" :rules="[
+           { required: true, message: '所在城市不能为空！', trigger: 'blur' },
+           { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+          ]">
+                <el-col :span="8">
+                    <el-input  clearable placeholder="请输入所在城市" v-model="ruleForm.s_city" ></el-input>
+                </el-col>
+            </el-form-item>
+         <el-form-item label="景点评分" prop="s_score" :rules="[
+          { required: true, message: '景点评分不能为空！', trigger: 'blur' },
+          { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+         ]"> 
+          <el-col :span="8">
+          <el-input  clearable placeholder="请输入景点评分" v-model="ruleForm.s_score" ></el-input>
+          </el-col>
+         </el-form-item>
+         <el-form-item label="景点票价" prop="s_price" :rules="[
+          { required: true, message: '景点票价不能为空！', trigger: 'blur' },
+          { pattern: /^[0-9]+$/, message: '格式错误！', trigger: 'blur' },
+          { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+         ]"> 
+          <el-col :span="8">
+          <el-input  clearable placeholder="请输入景点票价" v-model="ruleForm.s_price" ></el-input>
+          </el-col>
+         </el-form-item>
+         <el-form-item label="开放时间" prop="startselect" :rules="[
+          { required: true, message: '起始时间不能为空！', trigger: 'blur' }
+         ]"> 
+         <template>
+         <el-col :span="8">
+  		<el-select v-model="ruleForm.startselect" clearable placeholder="请选择开始时间">
+    	<el-option
+      v-for="item in options"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value">
+    </el-option>
+  </el-select>
+  </el-col>
+</template>
+         </el-form-item>
+          <el-form-item label="结束时间" prop="endselect" :rules="[
+          { required: true, message: '结束时间不能为空！', trigger: 'blur' }
+         ]" > 
+         <template>
+         <el-col :span="8">
+  		<el-select v-model="ruleForm.endselect" clearable placeholder="请选择结束时间">
+    	<el-option
+      v-for="item in options"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value">
+    </el-option>
+  </el-select>
+  </el-col>
+</template>
+         </el-form-item>
+          <el-form-item label="景点介绍" prop="s_introduce" :rules="[
+          { required: true, message: '景点介绍不能为空！', trigger: 'blur' }
+         ]"> 
+          <el-col :span="16">
+          <el-input
+  type="textarea"
+  autosize
+  placeholder="请输入景点介绍"
+  v-model="ruleForm.s_introduce">
+</el-input>
+          </el-col>
+         </el-form-item>
+         <el-form-item label="上传图片" >
+      <el-upload
+        ref="upload"
+        action="/fileup"
+        accept="image/png,image/gif,image/jpg,image/jpeg"
+        list-type="picture-card"
+        :limit=limitNum
+        drag
+        :auto-upload="false"
+        :on-exceed="handleExceed"  
+        :before-upload="handleBeforeUpload"
+        :on-preview="handlePictureCardPreview"
+        :on-remove="handleRemove" >
+        <i class="el-icon-plus"></i>
+      </el-upload>
+      <el-dialog :visible.sync="dialogVisible">
+        <img width="100%" :src="dialogImageUrl" alt="">
+      </el-dialog>
+    </el-form-item>
+    <el-form-item>
+      <el-button size="small" type="primary" @click="submitForm('ruleForm')">立即上传</el-button>
+    </el-form-item>
+    </el-form>
+		</div>
+		<div id="mapp">
+
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+new Vue({
+	el:"#app",
+	data:{
+		ruleForm:[
+		{
+			s_name:"",
+			s_address:"",
+            s_city:"",
+			s_coordinate:"",
+			s_score:"",
+			s_price:"",
+			startselect:"",
+			endselect:"",
+			s_introduce:"",
+		},
+		],
+		select:"",
+		options:[
+			{
+				 value: '6:00',
+         		 label: '6:00',
+			},
+			{
+				 value: '7:00',
+         		 label: '7:00',
+			},
+			{
+				 value: '7:30',
+         		 label: '7:30',
+			},
+			{
+				 value: '8:00',
+         		 label: '8:00',
+			},
+			{
+				 value: '8:30',
+         		 label: '8:30',
+			},
+			{
+				 value: '9:00',
+         		 label: '9:00',
+			},
+			{
+				 value: '17:00',
+         		 label: '17:00',
+			},
+			{
+				 value: '17:30',
+         		 label: '17:30',
+			},
+			{
+				 value: '18:00',
+         		 label: '18:00',
+			},
+			{
+				 value: '18:30',
+         		 label: '18:30',
+			},
+			{
+				 value: '19:00',
+         		 label: '19:00',
+			},
+			{
+				 value: '19:30',
+         		 label: '19:30',
+			},
+		],
+		startvalue: '',
+		endvalue: '',
+		dialogImageUrl: '',
+     	dialogVisible: false,
+        limitNum: 3,
+	},
+	methods:{
+  	// 上传文件之前的钩子
+    handleBeforeUpload(file){
+      //console.log('before')
+      if(!(file.type === 'image/png' || file.type === 'image/gif' || file.type === 'image/jpg' || file.type === 'image/jpeg')) {
+        this.$notify.warning({
+          title: '警告',
+          message: '请上传格式为image/png, image/gif, image/jpg, image/jpeg的图片'
+        })
+      }
+    //  alert(file.size);
+      let size = file.size / 1024 / 1024 / 2
+	//	alert(size);
+      if(size > 2) {
+        this.$notify.warning({
+          title: '警告',
+          message: '图片大小必须小于2M'
+        })
+      }
+    },
+    // 文件超出个数限制时的钩子
+    handleExceed(files, fileList) {
+    	alert("超出数量！");
+    },
+    // 文件列表移除文件时的钩子
+    handleRemove(file, fileList) {
+      //console.log(file, fileList);
+    },
+    // 点击文件列表中已上传的文件时的钩子
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url;
+     this.dialogVisible = true;
+    },
+    uploadFile() {
+      this.$refs.upload.submit();
+
+    },
+    submitForm:function(ruleForm){
+       var that =this;
+        this.$refs[ruleForm].validate((valid) => {
+          if (valid) {
+            this.uploadFile();
+              that.ruleForm.s_coordinate=$("#zuobiao").val();
+              that.ruleForm.s_coordinate=document.getElementById("zuobiao").value;
+              alert(that.ruleForm.s_coordinate);
+              axios.post("/addScenic","s_name="+that.ruleForm.s_name+"&s_address="+that.ruleForm.s_address+"&s_city="+that.ruleForm.s_city+"&s_coordinate="+that.ruleForm.s_coordinate+"&s_score="+that.ruleForm.s_score+"&s_price="+that.ruleForm.s_price+"&s_introduce="+that.ruleForm.s_introduce+"&startselect="+that.ruleForm.startselect+"&endselect="+that.ruleForm.endselect)
+                  .then(function(response){
+                      if(response.data==true){
+                          alert("success");
+                      }
+                  },function(err){
+                      alert(err);
+                  });
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
+     },
+	}
+})
+</script>
+<script src="../js/getcoordinate.js"></script>
+</html>

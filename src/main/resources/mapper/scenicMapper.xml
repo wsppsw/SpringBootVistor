@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.spring_system.mapper.ScenicMapper">
+    <!--查找全部景点-->
+    <select id="findall" resultType="com.example.spring_system.domain.Scenic">
+        select * from t_scenic
+    </select>
+    <!--查找推荐全部景点-->
+    <select id="findallLimit" resultType="com.example.spring_system.domain.Scenic" parameterType="Integer">
+        select * from t_scenic limit #{value}
+    </select>
+    <!--根据id查找景点-->
+    <select id="findbySid" resultType="com.example.spring_system.domain.Scenic" parameterType="Integer">
+        select * from t_scenic where s_id = #{s_id}
+    </select>
+    <!--根据name查找景点-->
+    <select id="findbyName" resultType="com.example.spring_system.domain.Scenic" parameterType="String">
+        select * from t_scenic
+        <if test="value != null">
+        where s_name like '%${value}%'
+        </if>
+    </select>
+    <!--根据address查找景点-->
+    <select id="findbyAddress" resultType="com.example.spring_system.domain.Scenic" parameterType="String">
+        select * from t_scenic
+        <if test="value != null">
+            where s_address like '%${value}%'
+        </if>
+    </select>
+    <!--根据score查找景点-->
+    <select id="findbyScore" resultType="com.example.spring_system.domain.Scenic" parameterType="String">
+        select * from t_scenic
+        <if test="value != null">
+            where s_score like '%${value}%'
+        </if>
+    </select>
+    <!--根据price查找景点-->
+    <select id="findbyPrice" resultType="com.example.spring_system.domain.Scenic" parameterType="Double">
+        select * from t_scenic
+        <if test="value != null">
+            where s_price like '%${value}%'
+        </if>
+    </select>
+    <!--添加景点-->
+    <insert id="addScenic" parameterType="com.example.spring_system.domain.Scenic">
+        insert into t_scenic values (null,#{s_name},#{s_address},#{s_city},#{s_score},#{s_price},#{s_time},#{s_coordinate},#{s_introduce},#{s_imgsrc})
+    </insert>
+    <!--更新景点-->
+    <update id="updateScenic" parameterType="com.example.spring_system.domain.Scenic">
+        update t_scenic set s_name=#{s_name},s_address=#{s_address},s_city=#{s_city},s_score=#{s_score},s_time=#{s_time},s_coordinate=#{s_coordinate},s_introduce=#{s_introduce},s_imgsrc=#{s_imgsrc} where s_id=#{s_id}
+    </update>
+    <!--下架景点-->
+    <delete id="deleteScenic" parameterType="com.example.spring_system.domain.Scenic">
+        delete from t_scenic where s_id=#{s_id}
+    </delete>
+    <!--浏览记录-->
+    <select id="findbrowse" resultType="com.example.spring_system.domain.Scenic" parameterType="java.util.List">
+        select * from t_scenic
+        <if test="list != null and list.size()!=0">
+            where s_id in
+            <foreach collection="list" index="i" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+</mapper>

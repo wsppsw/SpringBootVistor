@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>具体的景区</title>
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=vE5EkHqq2Q6wMRIdX8FSGChnEKj982mw"></script>  
+    <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+
+	<style type="text/css">
+	#wea{
+		width: 100%;
+		height: 300px;
+	}
+	#place{
+		float: left;
+		width: 50%;
+		height: 300px;
+	}
+	#w{
+		float: left;
+	}
+	.weather{
+		margin-left: 15px;
+		float: left;
+		width: 70px;
+		height: 300px;
+		background-color: rgba(255,255,255,0.3);
+		text-align: center;
+	}
+	.weather:hover{
+		background-color: rgba(255,255,255,0.6);
+	}
+	.weather p{
+		color: #E6A23C;
+	}
+	#introduce{
+		float: left;
+		width: 50%;
+		height: 300px;
+		color: #E6A23C;
+	}
+	#allmap{
+		float: left;
+		width: 50%;
+		height: 300px;
+	}
+	#path{
+		float: left;
+		margin-top: 250px;
+		margin-left: 10px;   
+	}
+	#ticket{
+		float: left;
+		width: 100%;
+		height: 330px;
+		margin-top: 5px;
+	}
+	#ticket_t{
+		width: 100%;
+	}
+	#seacher{
+		width: 100%;
+		height: 150px;
+	}
+	.seacher_train{
+		margin-left: 20px;
+		float: left;
+		width: 30%;
+		height: 150px;
+	}
+	.button_sea{
+		width: 30%;
+		height: 100px;
+	}
+	#zuobiao{
+		display: none;
+	}
+	</style>
+</head>
+<body>
+	<div id="app" v-loading.fullscreen.lock="fullscreenLoading">
+		<div id="wea">
+			{{getStation()}}
+			{{getSid()}}
+			{{getScenic()}}
+			{{getWeather()}}
+			{{varify()}}
+			{{openFullScreen()}}
+			<div id="ticket_t">
+				<el-table :data="tableData" @row-click="clickRow"  @selection-change="handleSelectionChange">
+					<el-table-column prop="p_name" label="景区名称" width="140">
+					</el-table-column>
+					<el-table-column prop="p_address" label="景区地址" width="300">
+					</el-table-column>
+					<el-table-column prop="p_date" label="日期" width="180">
+						<el-col :span="24">
+							<el-date-picker type="date" placeholder="选择日期" v-model="tableData.p_date" style="width: 100%;"></el-date-picker>
+						</el-col>
+					</el-table-column>
+					<el-table-column prop="p_price" label="票价" >
+					</el-table-column>
+					<el-table-column label="预定" width="180">
+						<template slot-scope="scope">
+							<el-button type="warning" @click="reserve(scope.row)" :disabled="disabled">订票</el-button>
+						</template>
+					</el-table-column>
+				</el-table>
+			</div>
+			<div id="ticket">
+				<div id="seacher">
+					<div class="seacher_train">
+						<el-row class="demo-autocomplete">
+							<el-col :span="20">
+								<el-autocomplete
+										class="inline-input"
+										v-model="state1"
+										:fetch-suggestions="querySearch"
+										placeholder="请输入内容"
+										@select="handleSelect"
+								></el-autocomplete>
+							</el-col>
+						</el-row>
+						<el-col :span="20" style="margin-top: 10px; ">
+							<el-autocomplete
+									class="inline-input"
+									v-model="state2"
+									:fetch-suggestions="querySearch"
+									placeholder="请输入内容"
+									@select="handleSelect"
+							></el-autocomplete>
+						</el-col>
+						<div class="button_sea">
+							<el-button type="primary" icon="el-icon-search" style="margin-top: 10px;" @click="seatrain" >查询火车</el-button>
+						</div>
+					</div>
+					<div class="seacher_train">
+						<el-row class="demo-autocomplete">
+							<el-col :span="20">
+								<el-autocomplete
+										class="inline-input"
+										v-model="state3"
+										:fetch-suggestions="querySearch"
+										placeholder="请输入内容"
+										@select="handleSelect"
+								></el-autocomplete>
+							</el-col>
+						</el-row>
+						<el-col :span="20" style="margin-top: 10px; ">
+							<el-autocomplete
+									class="inline-input"
+									v-model="state4"
+									:fetch-suggestions="querySearch"
+									placeholder="请输入内容"
+									@select="handleSelect"
+							></el-autocomplete>
+						</el-col>
+						<div class="button_sea">
+							<el-button type="primary" icon="el-icon-search" style="margin-top: 10px;" @click="seaplane">查询飞机</el-button>
+						</div>
+					</div>
+					<div class="seacher_train">
+						<el-row class="demo-autocomplete">
+							<el-col :span="20">
+								<el-autocomplete
+										class="inline-input"
+										v-model="state5"
+										:fetch-suggestions="querySearch"
+										placeholder="请输入内容"
+										@select="handleSelect"
+								></el-autocomplete>
+							</el-col>
+						</el-row>
+						<el-col :span="20" style="margin-top: 10px; ">
+							<el-autocomplete
+									class="inline-input"
+									v-model="state6"
+									:fetch-suggestions="querySearch"
+									placeholder="请输入内容"
+									@select="handleSelect"
+							></el-autocomplete>
+						</el-col>
+						<div class="button_sea">
+							<el-button type="primary" icon="el-icon-search" style="margin-top: 10px;" @click="seacar">查询汽车</el-button>
+						</div>
+					</div>
+				</div>
+			<div id="place">
+			<template>
+  			<el-carousel :interval="2000" height="300px">
+    		<el-carousel-item v-for="(item,index) in imgArr" :key="index">
+     		 <a @click="aa(index)">
+     	 	<img :src="item.imgsrc" class="rightImg" style=" width: 100%; height:100%">
+     		 </a>
+    	</el-carousel-item>
+  		</el-carousel>
+		</template>
+		<el-dialog :visible.sync="dialogVisible" width="80%" height="60%">
+        <img width="100%" height="60%" :src="dialogImageUrl" alt="">
+      </el-dialog>
+			</div>
+			<div id="w">
+		<div class="weather" v-for="(item,index) in weatherData" :key="index" >
+			<p>{{item.date}}</p>
+			<el-image :src="item.imgtype" style="width: 30px; height: 30px; "></el-image>
+			<p>{{item.type}}</p>
+			<p>最高温</p>
+			<p>{{item.high}}</p>
+			<p>最低温</p>
+			<p>{{item.low}}</p>
+		</div>
+		<el-button type="primary" icon="el-icon-search" id="path">路线</el-button>
+		</div>
+		<div id="introduce">
+			<input type="hidden" clearable placeholder="请输入用户名" v-model="address_" id="address"></input>
+			<input type="hidden" clearable placeholder="请输入用户名" v-model="coor" id="zuobiao"></input>
+			<input type="hidden" clearable placeholder="请输入用户名" v-model="scity" id="scity"></input>
+			<p >景区地址:{{scenic.s_address}}<p>
+			<p>景区介绍:<p>
+			<p>{{scenic.s_introduce}}</p>
+			<p>景区评分:{{scenic.s_score}}<p>
+			<p>景区门票:{{scenic.s_price}}￥<p>
+			<p>开放时间:{{scenic.s_time}}<p>
+		</div>
+		<div id="allmap">
+		</div>
+		</div>
+		</div>
+	</div>
+</body>
+	<script type="text/javascript">
+		new Vue({
+			el:"#app",
+			data:{
+				imgArr:[
+					{
+						imgsrc:"../imgs/qb1.jpg",
+					},
+					{
+						imgsrc:"../imgs/qb2.jpg",
+					},
+					{
+						imgsrc:"../imgs/qb3.jpg",
+					},
+				],
+				dialogVisible:false,
+				dialogImageUrl:"",
+				weatherData:[
+					{
+						date:"日期",
+						type:"多云",
+						imgtype:"../img/qing.png",
+						high:"最高温",
+						low:"最低温",
+					}
+				],
+				scenic:[
+					{
+					s_id:"0",
+					s_name:"",
+					s_address:"河北省邯郸市武安市七步沟",
+					s_city:"",
+					s_score:"",
+					s_price:"",
+					s_time:"",
+					s_coordinate:"113.881628,36.938712",
+					s_introduce:"",
+					s_imgsrc:"",
+				   }
+				],
+				tableData:[
+					{
+						p_name:"七步沟",
+						p_address:"河北省邯郸市武安市七步沟",
+						p_date:"",
+						p_price:"12.0(成人票)",
+					},
+					{
+						p_name:"七步沟",
+						p_address:"河北省邯郸市武安市七步沟",
+						p_date:"",
+						p_price:"6.0(学生票)",
+					}
+				],
+				state1:"",
+				state2:"",
+				state3:"",
+				state4:"",
+				state5:"",
+				state6:"",
+				station: [
+				  {
+				  	t_id:"1",
+				  	value:"邯郸",
+					t_value:"handan",
+				  },
+				],
+				scity:"武安市",
+				coor:"113.881628,36.938712",
+				address_:"河北省邯郸市武安市活水乡七步沟村",
+				disabled:false,
+				fullscreenLoading:true,
+				flagg:true,//加载
+				flag1:true,//获取景点编号
+				flag2:true,//获取景点
+				flag3:true,//获取站点
+				flag4:true,//获取天气
+			},
+			methods:{
+				openFullScreen() {
+					if(this.flagg){
+						this.flagg=false;
+						this.fullscreenLoading = true;
+						setTimeout(() => {
+							this.fullscreenLoading = false;
+						}, 1000);
+					}
+				},
+				getStation(){
+					var that = this;
+					if(that.flag3){
+						axios.post("/tostation")
+						.then(function (response) {
+							if (response.data != null) {
+								that.flag3=false;
+								console.log(response.data);
+								that.station = response.data;
+								}
+							}, function (err) {
+								alert(err);
+							});
+					}
+				},
+				getWeather(){
+					var that = this;
+					if(that.flag4){
+						axios.post("/weatherFive","scity="+that.scity)
+								.then(function (response) {
+									if (response.data != null) {
+										that.flag4=false;
+										console.log(response.data);
+										that.weatherData = response.data;
+										for(var i=0;i<5;i++){
+											if (that.weatherData[i].type == "晴") {
+												that.weatherData[i].imgtype = "../img/qing.png";
+											} else if (that.weatherData[i].type  == "多云") {
+												that.weatherData[i].imgtype = "../img/duoyun.png";
+											} else if (that.weatherData[i].type  == "阴") {
+												that.weatherData[i].imgtype = "../img/yins.png";
+											} else if (that.weatherData[i].type  == "小雨") {
+												that.weatherData[i].imgtype = "../img/xiaoyu.png";
+											} else if (that.weatherData[i].type  == "中雨") {
+												that.weatherData[i].imgtype = "../img/zhongyu.png";
+											} else if (that.weatherData[i].type  == "大雨") {
+												that.weatherData[i].imgtype = "../img/dayu.png";
+											} else if (that.weatherData[i].type  == "阵雨") {
+												that.weatherData[i].imgtype = "../img/zhenyu.png";
+											} else if (that.weatherData[i].type  == "雷阵雨") {
+												that.weatherData[i].imgtype = "../img/leiyu.png";
+											} else if (that.weatherData[i].type  == "小雪") {
+												that.weatherData[i].imgtype = "../img/xiaoxue.png";
+											} else if (that.weatherData[i].type  == "中雪") {
+												that.weatherData[i].imgtype = "../img/zhongxue.png";
+											} else if (that.weatherData[i].type  == "大雪") {
+												that.weatherData[i].imgtype = "../img/daxue.png";
+											} else if (that.weatherData[i].type  == "阵雪") {
+												that.weatherData[i].imgtype = "../img/zhenxue.png";
+											} else if (that.weatherData[i].type  == "雷雨") {
+												that.weatherData[i].imgtype = "../img/leiyu.png";
+											} else if (that.weatherData[i].type  == "霾") {
+												that.weatherData[i].imgtype = "../img/mai.png";
+											} else {
+												that.weatherData[i].imgtype = "../img/wu.png";
+											}
+										}
+									}
+								}, function (err) {
+									alert(err);
+								});
+					}
+				},
+				getScenic(){
+					var that = this;
+					if(that.flag2){
+						axios.post("/findsid","id="+that.scenic.s_id)
+						.then(function (response) {
+							if (response.data != null) {
+								that.flag2=false;
+								that.scenic = response.data;
+								that.scity=that.scenic.s_city;
+								that.coor=that.scenic.s_coordinate;
+								that.address_=that.scenic.s_address;
+								that.tableData[0].p_name=that.scenic.s_name;
+								that.tableData[1].p_name=that.scenic.s_name;
+								that.tableData[0].p_address=that.scenic.s_address;
+								that.tableData[1].p_address=that.scenic.s_address;
+								if(that.scenic.s_price=="0"){
+									that.tableData[0].p_price="免费(成人票)";
+									that.tableData[1].p_price="免费(学生票)";
+								}else{
+									that.tableData[0].p_price=that.scenic.s_price+"(成人票)";
+									let i=that.scenic.s_price;
+									that.tableData[1].p_price=(i/2)+"(学生票)";
+								}
+								//that.tableData[0].p_date=new Date().toLocaleDateString();
+								//that.tableData[1].p_date=new Date().toLocaleDateString();
+								}
+								var string = that.scenic.s_imgsrc;
+								var str = string.split(",");
+								that.imgArr[0].imgsrc="../imgs/"+str[0];
+								that.imgArr[1].imgsrc="../imgs/"+str[1];
+								that.imgArr[2].imgsrc="../imgs/"+str[2];
+							}, function (err) {
+								alert(err);
+							});
+					}
+				},
+				getSid(){
+					var that = this;
+					if(that.flag1) {
+						that.flag1=false;
+						var gethref = window.location.href;
+						var s = gethref.split("?id=");
+						var s_id = s[1];
+						that.scenic.s_id = s_id;
+					}
+				},
+				//查看原图
+				aa:function(index){
+					var i =index;
+					this.dialogImageUrl=this.imgArr[i].imgsrc;
+					this.dialogVisible=true;
+				},
+				reserve:function(row){
+					var that = this;
+					var p = row.p_price;
+					that.$confirm('确定订购此景点门票?', '提示', {
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+						type: 'success'
+					}).then(() => {
+						axios.post("/user/toorder","sid="+that.scenic.s_id+"&date="+that.tableData.p_date.toLocaleDateString()+"&type="+p)
+								.then(function (response) {
+									if (response.data == true) {
+										that.$message({
+											type: 'success',
+											message: '订购成功!'
+										});
+									}
+								}, function (err) {
+									alert(err);
+								});
+					}).catch(() => {
+						that.$message({
+							type: 'warning',
+							message: '取消请购'
+						});
+					});
+
+				},
+		querySearch(queryString, cb) {
+        var station = this.station;
+        var results = queryString ? station.filter(this.createFilter(queryString)) : station;
+        // 调用 callback 返回建议列表的数据
+        cb(results);
+     	 },
+      	createFilter(queryString) {
+        return (station) => {
+          return (station.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+        };
+      },
+		seatrain:function(){
+			var start="start",end="end",flag11=false,flag22=false;
+			for(var i=0;i<this.station.length;i++){
+				if(this.state1==this.station[i].value){
+					start=this.station[i].t_value;
+					flag11=true;
+				}
+				if(this.state2==this.station[i].value){
+					end=this.station[i].t_value;
+					flag22=true;
+				}
+				if(flag22&&flag11){
+					break;
+				}
+			}
+			window.open("http://m.114piaowu.com/huochepiao/"+start+"-"+end+".html");
+		},
+		seaplane:function(){
+			var start="start",end="end",flag11=false,flag22=false;
+			for(var i=0;i<this.station.length;i++){
+				if(this.state3==this.station[i].value){
+					start=this.station[i].t_value;
+					flag11=true;
+				}
+				if(this.state4==this.station[i].value){
+					end=this.station[i].t_value;
+					flag22=true;
+				}
+				if(flag22&&flag11){
+					break;
+				}
+			}
+			window.open("http://m.114piaowu.com/jipiao/"+start+"-"+end+".html");
+		},
+		seacar:function(){
+			var start="start",end="end",flag11=false,flag22=false;
+			for(var i=0;i<this.station.length;i++){
+				if(this.state5==this.station[i].value){
+					start=this.station[i].t_value;
+					flag11=true;
+				}
+				if(this.state6==this.station[i].value){
+					end=this.station[i].t_value;
+					flag22=true;
+				}
+				if(flag22&&flag11){
+					break;
+				}
+			}
+			window.open("http://m.114piaowu.com/qiche/"+start+"-"+end);
+		  },
+		  varify(){
+			  var that = this;
+			  axios.post("/verifyTologin")
+			  .then(function (response) {
+					if (response.data == true) {
+						that.disabled=false;
+					}else {
+						that.disabled=true;
+					}
+				}, function (err) {
+					alert(err);
+				 });
+		  },
+		}
+		})
+	</script>
+<script src="../js/tuijian.js"></script>
+</html>

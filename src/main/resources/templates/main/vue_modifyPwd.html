@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>修改密码</title>
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+	<style type="text/css">
+	#div1{
+		float: left;
+		width: 800px;
+		height: 600px;
+		background-color: #409EFF;
+		border-radius: 30px;
+		margin-left: 150px;
+	}
+	#div2{
+		float: left;
+		width: 600px;
+		height: 400px;
+		background-color: #E9EEF3;
+		border-radius: 30px;
+		margin-left: 100px;
+		margin-top: 100px; 
+	}
+	.el-form{
+		margin-left: 120px;
+		margin-top: 50px; 
+	}
+	</style>
+</head>
+<body>
+	<div id="app">
+        {{already()}}
+        {{created()}}
+		<div id="div1">
+		<div id="div2">
+		<el-form :model="DataForm" status-icon  ref="DataForm" size="medium" label-width="100px" :label-position="left">
+          <el-form-item label="用户名" prop="username" >
+          <el-col :span="10">
+          <el-input  clearable placeholder="请输入用户名" v-model="DataForm.username" :disabled="true"></el-input>
+          </el-col>
+         </el-form-item>
+            <span style="color: #F56C6C; font-size: 10px; margin-left: 100px;" >{{olderr}}</span>
+         <el-form-item label="旧密码" prop="oldpassword" :rules="[
+          { required: true, message: '密码不能为空！', trigger: 'blur' },
+          { min: 6, message: '密码不少于6个长度', trigger: 'blur'}
+         ]"> 
+         <el-col :span="10">
+          <el-input  type="password" clearable placeholder="请输入密码" v-model="DataForm.oldpassword" ></el-input>
+          </el-col>
+         </el-form-item>
+            <span style="color: #F56C6C; font-size: 10px; margin-left: 100px;" >{{newerr1}}</span>
+         <el-form-item label="新密码" prop="newpassword1" :rules="[
+          { required: true, message: '密码不能为空！', trigger: 'blur' },
+          { min: 6, message: '密码不少于6个长度', trigger: 'blur'}
+         ]"> 
+         <el-col :span="10">
+          <el-input  type="password" clearable placeholder="请输入密码" v-model="DataForm.newpassword1" ></el-input>
+          </el-col>
+         </el-form-item>
+            <span style="color: #F56C6C; font-size: 10px; margin-left: 100px;" >{{newerr2}}</span>
+		<el-form-item label="确认密码" prop="newpassword2" :rules="[
+          { required: true, message: '密码不能为空！', trigger: 'blur' },
+          { min: 6, message: '密码不少于6个长度', trigger: 'blur'}
+         ]"> 
+         <el-col :span="10">
+          <el-input  type="password" clearable placeholder="请再次输入密码" v-model="DataForm.newpassword2" ></el-input>
+          </el-col>
+         </el-form-item>
+         <el-form-item>
+          <el-button type="primary" @click="submitForm('DataForm')">更改</el-button>
+      </el-form-item>
+        </el-form>
+		</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+new Vue({
+	el:"#app",
+	data:{
+		DataForm:{
+      		username:"张三",
+      		oldpassword:"",
+      		newpassword1:"",
+            newpassword2:"",
+      	},
+      	code:"点击获取验证码",
+      	disabled:false,
+        flag:true,//获取登录信息
+        olderr:"",
+        newerr1:"",
+        newerr2:"",
+	},
+	methods:{
+        created(){
+            var that = this;
+            document.onkeydown = function(e){
+                var key = window.event.keyCode;
+                if(key == 13){
+                    that.submitForm('DataForm');
+                }
+            }
+        },
+        already(){
+            var that = this;
+            if(that.flag){
+                that.flag=false;
+                axios.post("/AlreadyLogin")
+                    .then(function(response){
+                        if(response.data != null){
+                            that.DataForm=response.data;
+                        }
+                    },function(err){
+                        alert(err);
+                    });
+            }
+        },
+		submitForm:function(DataForm){
+            var that = this;
+		this.$refs[DataForm].validate((valid) => {
+          if (valid) {
+              axios.post("/modifyPassword","oldpassword="+that.DataForm.oldpassword+"&newpassword1="+that.DataForm.newpassword1+"&newpassword2="+that.DataForm.newpassword2)
+                  .then(function(response){
+                      if(response.data == "旧密码错误!"){
+                          that.olderr="旧密码错误!";
+                          that.DataForm.oldpassword="";
+                          that.DataForm.newpassword1="";
+                          that.DataForm.newpassword2="";
+                          that.newerr1="";
+                          that.newerr2="";
+                      }else if(response.data == "新密码不能与旧密码一致!"){
+                          that.newerr1="新密码不能与旧密码一致!";
+                          that.DataForm.newpassword1="";
+                          that.DataForm.newpassword2="";
+                          that.olderr="";
+                          that.newerr2="";
+                      }else if(response.data == "两次输入密码不一致!"){
+                          that.newerr2="两次输入密码不一致!";
+                          that.DataForm.newpassword1="";
+                          that.DataForm.newpassword2="";
+                          that.olderr="";
+                          that.newerr1="";
+                      }else {
+                          that.$message({
+                              message: '密码修改成功!',
+                              type: 'success'
+                          });
+                          that.DataForm.oldpassword="";
+                          that.DataForm.newpassword1="";
+                          that.DataForm.newpassword2="";
+                          that.olderr="";
+                          that.newerr1="";
+                          that.newerr2="";
+                      }
+                  },function(err){
+                      alert(err);
+                  });
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
+		}
+	}
+})
+</script>
+</html>

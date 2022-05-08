@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.spring_system.mapper.StationMapper">
+
+    <select id="findallStation" resultType="com.example.spring_system.domain.Station">
+        select * from t_station
+    </select>
+
+    <insert id="addSattion" parameterType="com.example.spring_system.domain.Station">
+        insert into t_station values (null,#{value},#{t_value})
+    </insert>
+</mapper>

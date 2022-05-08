@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>后台管理</title>
+    <link rel="shortcut icon" href="../img/ico/1.ico" type="image/x-icon">
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+	<style type="text/css">
+	.el-header, .el-footer {
+    background-color: #409EFF;
+    text-align: center;
+ 	 }
+  	.el-aside {
+    background-color: #D3DCE6;
+    
+  	}
+  	.el-main{
+  	background-color: #E9EEF3;
+    height: 1000px;
+    text-align:center;
+  	}
+	</style>
+</head>
+<body>
+	<div id="div">
+<el-container>
+  <el-header>
+  <el-container>
+  <div id="hua">
+	<p><marquee  direction="left" style="color: white;">欢迎进入系统！</marquee></p>
+	</div>
+</el-container>
+  </el-header>
+  <el-container>
+    <el-aside width="initial">
+		<el-menu :default-openeds="['1','2']" class='demo'>
+      <el-submenu index="1">
+        <template slot="title"></template>
+        <el-menu-item-group>
+          <el-menu-item index="1-1" @click="query" href="vue_list.html"><i class="el-icon-help"></i>查看景点</el-menu-item>
+           <el-menu-item index="1-2" @click="add"><i class="el-icon-help"></i>添加景点</el-menu-item>
+        </el-menu-item-group>
+      </el-submenu>
+       <el-submenu index="2">
+                <template slot="title"></template>
+                <el-menu-item-group>
+                    <el-menu-item index="2-1"  @click="exportScenic"><i class="el-icon-help"></i>导出景点</el-menu-item>
+                    <el-menu-item index="2-2" @click="exportUser"><i class="el-icon-help"></i>导出用户</el-menu-item>
+                    <el-menu-item index="2-3" @click="exportOrder"><i class="el-icon-help"></i>导出订单</el-menu-item>
+                </el-menu-item-group>
+       </el-submenu>
+    </el-menu>
+    </el-aside>
+    <el-main>
+		<iframe :src="Iframe" frameborder="false" style="width: 100%; height: 950px; margin-left:-50px; "></iframe>
+    </el-main>
+  </el-container>
+  <el-header>
+	 <p style="color: white;">@Copyright 2021 - 2022</p>
+  </el-header>
+</el-container>
+	</div>
+</body>
+<script type="text/javascript">
+new Vue({
+	el:"#div",
+	data:{
+		Iframe:"/manage/query",
+	},
+	methods:{
+		query(){
+			this.Iframe="/manage/query";
+		},
+		add(){
+			this.Iframe="/manage/add";
+		},
+        exportScenic(){
+            window.location.href="/ExportScenic";
+        },
+        exportUser(){
+            window.location.href="/ExportUser";
+        },
+        exportOrder(){
+            window.location.href="/ExportOrder";
+        }
+	}
+})
+</script>
+</html>

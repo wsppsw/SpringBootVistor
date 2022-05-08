@@ -1,0 +1,11 @@
+$(function(){
+	$(".div2").hover(function(){
+		$(this).find(".el-image").css("transform","scale(1.2)");
+		$(this).css("background-color","#E6A23C");
+		$(this).find("p").css("color","white");
+	},function(){
+		$(this).find(".el-image").css("transform","scale(1.0)");
+		$(this).css("background-color","white");
+		$(this).find("p").css("color","#409EFF");
+	})
+})

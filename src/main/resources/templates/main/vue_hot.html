@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>热门景区</title>
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+	<style type="text/css">
+	#search{
+		width: 100%;
+		height: 50px;
+		text-align: center;
+	}
+	#search .el-input{
+		margin-left: 350px; 
+	}
+	.div1{
+		float: left;
+		margin-left: 40px;
+		margin-top: 10px;  
+		width: 300px;
+		height: 350px;
+		background-color: #409EFF;
+		border: 1px solid white;
+		color: white;
+	}
+	.div1:hover{
+		border: 1px solid #409EFF;
+		color: #409EFF;
+		background-color: white;
+	}
+	#page{
+		margin-top: 20px; 
+		float: left;
+		width: 100%;
+		height: 50px;
+		text-align: center;
+	}
+	</style>
+</head>
+<body>
+	<div id="div">
+		{{getScenicPage()}}
+		{{created()}}
+		<div id="search">
+			<span style="color: #F56C6C; font-size: 10px; margin-left: 150px;" >{{err}}</span>
+		<el-col :span="6">
+   		<el-input clearable placeholder="请输入查询内容" v-model="input" ></el-input>
+  		</el-col>
+   		
+    	<el-button type="primary" icon="el-icon-search" @click="find">搜索</el-button>
+		</div>
+		<div class="div1" v-for="(item,index) in DataScenic" :key="index">
+			<a @click="tofind(item.s_id)">
+			<el-image :src="item.s_imgsrc" style="width: 300px; height: 250px;"></el-image>
+			<p>{{item.s_name}}</p>
+			<p>地址:{{item.s_address}}</p>
+			</a>
+		</div>
+		<div id="page">
+		<el-button-group >
+ 		 <el-button type="primary" icon="el-icon-arrow" @click="getFirst">首页</el-button>
+ 	  </el-button-group>
+      <el-button-group v-for="page in pages" :key="page">
+ 		  <el-button type="primary" icon="el-icon-arrow" @click="getListPage(page)" >{{page}}页</el-button>
+ 		</el-button-group>
+ 		<el-button-group >
+  		<el-button type="primary" icon="el-icon-arrow-rihgt" @click="getLast">尾页</el-button>
+  		</el-button-group>
+		</div>
+	</div>
+</body>
+<script th:inline="javascript">
+new Vue({
+	el:"#div",
+	data:{
+		DataScenic:[
+			{
+				s_id:"",
+				s_name:"",
+				s_address:"",
+				s_city:"",
+				s_score:"",
+				s_coordinate:"",
+				s_introduce:"",
+				s_imgsrc:"../imgs/qb2.jpg",
+			}
+		],
+		input:"",
+		err:"",
+		pageSize:"6",//一页显示数量
+		pageNum:"1",//当前页码
+		pages:[],//总共页数
+		pageFirst:"",//首页
+		pageLast:"",//尾页
+		flag1:true,//获取scenic集合
+	},
+	methods:{
+		created(){
+			var that = this;
+			document.onkeydown = function(e){
+				var key = window.event.keyCode;
+				if(key == 13){
+					that.find();
+				}
+			}
+		},
+		tofind:function (index){
+			var id =index;
+			var name = [[${session.username}]];
+			if(name!=null){
+				axios.post("/userBrowse","sid="+id)
+						.then(function (response) {
+							if (response.data == true) {
+								console.log("添加记录成功！");
+							}
+						}, function (err) {
+							alert(err);
+						});
+			}
+			location.href="/main/scenic?id="+id;
+		},
+		getScenicPage() {
+			var that = this;
+			if (that.flag1) {
+				axios.post("/hotPage","pageNum=" + that.pageNum + "&pageSize=" + that.pageSize)
+					.then(function (response) {
+						that.DataScenic = response.data.list;
+						for(var i=0;i<that.DataScenic.length;i++){
+							var str = that.DataScenic[i].s_imgsrc;
+							var src = str.split(",");
+							that.DataScenic[i].s_imgsrc="../imgs/"+src[2];
+
+						}
+						that.pages = response.data.navigatepageNums;
+						that.pageFirst = response.data.navigateFirstPage;
+						that.pageLast = response.data.navigateLastPage;
+						that.flag1=false;
+						console.log(that.DataScenic);
+					}, function (err) {
+						alert(err);
+				});
+			}
+		},
+		getListPage(page){
+			var that = this;
+			var page = page;
+			if(that.input=="") {
+				axios.post("/hotPage", "pageNum=" + page + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.DataScenic = response.data.list;
+							for (var i = 0; i < that.DataScenic.length; i++) {
+								var str = that.DataScenic[i].s_imgsrc;
+								var src = str.split(",");
+								that.DataScenic[i].s_imgsrc = "../imgs/" + src[2];
+								console.log("图片为:"+that.DataScenic[i].s_imgsrc);
+							}
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.DataScenic);
+						}, function (err) {
+							alert(err);
+						});
+			}else {
+				axios.post("/findPage","key="+that.input+"&pageNum=" + page + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.DataScenic = response.data.list;
+							for(var i=0;i<that.DataScenic.length;i++){
+								var str = that.DataScenic[i].s_imgsrc;
+								var src = str.split(",");
+								that.DataScenic[i].s_imgsrc="../imgs/"+src[2];
+							}
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.DataScenic);
+						}, function (err) {
+							alert(err);
+						});
+			}
+		},
+		getFirst(){
+			var that = this;
+			if(that.input=="") {
+				axios.post("/hotPage", "pageNum=" + that.pageFirst + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.DataScenic = response.data.list;
+							for (var i = 0; i < that.DataScenic.length; i++) {
+								var str = that.DataScenic[i].s_imgsrc;
+								var src = str.split(",");
+								that.DataScenic[i].s_imgsrc = "../imgs/" + src[2];
+							}
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.DataScenic);
+						}, function (err) {
+							alert(err);
+						});
+			}else {
+				axios.post("/findPage","key="+that.input+"&pageNum=" + that.pageFirst + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.DataScenic = response.data.list;
+							for(var i=0;i<that.DataScenic.length;i++){
+								var str = that.DataScenic[i].s_imgsrc;
+								var src = str.split(",");
+								that.DataScenic[i].s_imgsrc="../imgs/"+src[2];
+							}
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.DataScenic);
+						}, function (err) {
+							alert(err);
+						});
+			}
+		},
+		getLast(){
+			var that = this;
+			if(that.input=="") {
+				axios.post("/hotPage", "pageNum=" + that.pageLast + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.DataScenic = response.data.list;
+							for (var i = 0; i < that.DataScenic.length; i++) {
+								var str = that.DataScenic[i].s_imgsrc;
+								var src = str.split(",");
+								that.DataScenic[i].s_imgsrc = "../imgs/" + src[2];
+							}
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.DataScenic);
+						}, function (err) {
+							alert(err);
+						});
+			}else {
+				axios.post("/findPage","key="+that.input+"&pageNum=" + that.pageLast + "&pageSize=" + that.pageSize)
+						.then(function (response) {
+							that.DataScenic = response.data.list;
+							for(var i=0;i<that.DataScenic.length;i++){
+								var str = that.DataScenic[i].s_imgsrc;
+								var src = str.split(",");
+								that.DataScenic[i].s_imgsrc="../imgs/"+src[2];
+							}
+							that.pages = response.data.navigatepageNums;
+							that.pageFirst = response.data.navigateFirstPage;
+							that.pageLast = response.data.navigateLastPage;
+							console.log(that.DataScenic);
+						}, function (err) {
+							alert(err);
+						});
+			}
+		},
+		find(){
+			var that = this;
+			axios.post("/findPage","key="+that.input+"&pageNum=" + that.pageNum + "&pageSize=" + that.pageSize)
+					.then(function (response) {
+						that.DataScenic = response.data.list;
+						for(var i=0;i<that.DataScenic.length;i++){
+							var str = that.DataScenic[i].s_imgsrc;
+							var src = str.split(",");
+							that.DataScenic[i].s_imgsrc="../imgs/"+src[2];
+						}
+						if(response.data.prePage==1){
+							that.err="检索失败,未查询到相关信息";
+							that.input="";
+						}else {
+							that.err="";
+						}
+
+						if(that.input==""){
+							that.err="检索失败,请输入相关信息";
+						}
+
+						that.pages = response.data.navigatepageNums;
+						that.pageFirst = response.data.navigateFirstPage;
+						that.pageLast = response.data.navigateLastPage;
+						console.log(that.DataScenic);
+					}, function (err) {
+						alert(err);
+					});
+		},
+	}
+})
+</script>
+</html>

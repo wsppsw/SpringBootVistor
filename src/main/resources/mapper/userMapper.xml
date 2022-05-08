@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.spring_system.mapper.UserMapper">
+    <select id="findalluser" resultType="com.example.spring_system.domain.User">
+    select * from t_user
+    </select>
+
+    <select id="findbyusername" resultType="com.example.spring_system.domain.User" parameterType="String">
+    select * from t_user where u_name =#{u_name}
+    </select>
+
+    <select id="findbyuserphone" resultType="com.example.spring_system.domain.User" parameterType="String">
+    select * from t_user where u_phone =#{u_phone}
+    </select>
+
+    <insert id="adduser" parameterType="com.example.spring_system.domain.User">
+    insert into t_user values (null,#{u_name},#{u_phone},#{u_password},#{u_type},#{u_browse})
+    </insert>
+
+    <update id="updateuser" parameterType="com.example.spring_system.domain.User">
+    update t_user set u_phone=#{u_phone},u_password=#{u_password},u_browse=#{u_browse} where u_id=#{u_id}
+    </update>
+
+    <update id="adduserbrowse" parameterType="com.example.spring_system.domain.User">
+    update t_user set u_browse=#{u_browse} where u_id=#{u_id}
+    </update>
+
+
+</mapper>

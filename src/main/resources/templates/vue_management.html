@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>后台管理</title>
+	<link rel="shortcut icon" href="../img/ico/1.ico" type="image/x-icon">
+	<script type="text/javascript" src="./js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="./element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="./element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="./js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="./js/axios.js"></script>
+	<style type="text/css">
+	.el-header,.el-footer{
+		background-color: #409EFF;
+    	text-align: center;
+    	color: white;
+	}
+	.el-main{
+  	background-color: #E9EEF3;
+  	height: 500px;
+    text-align:center;
+	}
+	#div1{
+		float: left;
+		width: 400px;
+		height: 200px;
+		background-color: white;
+		margin-left: 450px;
+		margin-top: 80px;
+		text-align: center;
+		border-radius: 30px;
+	}
+	.el-form{
+		margin-left: -10px; 
+		margin-top: 20px; 
+	}
+	</style>
+</head>
+<body>
+	<div id="app">
+	<el-container>
+  		<el-header>
+		<p>后台管理登录</p>
+  		</el-header>
+  		<el-main>
+			<div id="div1">
+				{{created()}}
+				<el-form :model="ruleForm" status-icon  ref="ruleForm" size="medium" label-width="100px">
+				<span style="color: #F56C6C; font-size: 10px; margin-left: -80px;" >{{err}}</span>
+          <el-form-item label="账号" prop="username" :rules="[
+           { required: true, message: '用户号不能为空！', trigger: 'blur' },
+           { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '不允许输入空格等特殊符号'}
+          ]">
+          <el-col :span="18">
+          <el-input  clearable placeholder="请输入用户名" v-model="ruleForm.username" ></el-input>
+          </el-col>
+         </el-form-item>
+
+         <el-form-item label="密码" prop="password" :rules="[
+          { required: true, message: '密码不能为空！', trigger: 'blur' },
+          { min: 6, message: '密码不少于6个长度', trigger: 'blur'}
+         ]"> 
+         <el-col :span="18">
+          <el-input  show-password clearable placeholder="请输入密码" v-model="ruleForm.password" ></el-input>
+          </el-col>
+         </el-form-item>
+         <el-form-item>
+          <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
+      	</el-form-item>
+         </el-form>
+			</div>
+  		</el-main>
+  		<el-footer>
+		<p>@Copyright 2021 - 2022</p>
+  		</el-footer>
+</el-container>
+	</div>
+</body>
+<script type="text/javascript">
+new Vue({
+	el:"#app",
+	data:{
+		ruleForm:{
+			username:"",
+			password:"",
+		},
+		err:"",
+	},
+	methods:{
+		created(){
+			var that = this;
+			document.onkeydown = function(e){
+				var key = window.event.keyCode;
+				if(key == 13){
+					that.submitForm('ruleForm');
+				}
+			}
+		},
+		submitForm:function(ruleForm){
+			var that = this;
+				this.$refs[ruleForm].validate((valid) => {
+          if (valid) {
+			  axios.post("/tologinmanagement","username="+that.ruleForm.username+"&password="+that.ruleForm.password)
+					  .then(function(response){
+						  if(response.data==true){
+							  location.href="/manage/management";
+						  }else{
+							  that.ruleForm.username="";
+							  that.ruleForm.password="";
+							  that.err=response.data;
+						  }
+					  },function(err){
+						  alert(err);
+				 });
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
+			}
+	}
+})
+</script>
+</html>
