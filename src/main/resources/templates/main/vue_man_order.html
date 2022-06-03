@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>订单</title>
+	<script type="text/javascript" src="../js/vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="../element-ui/lib/theme-chalk/index.css">
+	<script type="text/javascript" src="../element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="../js/axios.js"></script>
+</head>
+<body>
+<div id="app">
+	{{getOrder()}}
+	<el-table :data="tableData" @row-click="clickRow"  @selection-change="handleSelectionChange">
+		<el-table-column prop="p_name" label="景区名称" width="150">
+		</el-table-column>
+		<el-table-column prop="p_address" label="景区地址" width="350">
+		</el-table-column>
+		<el-table-column prop="u_name" label="购票人" width="100">
+		</el-table-column>
+		<el-table-column prop="p_date" label="日期" width="150">
+		</el-table-column>
+		<el-table-column prop="p_type" label="票价" >
+		</el-table-column>
+		<el-table-column label="预定" width="180">
+			<template slot-scope="scope">
+				<el-button type="danger" @click="cancel(scope.row)" >强制退票</el-button>
+			</template>
+		</el-table-column>
+	</el-table>
+</div>
+</body>
+<script type="text/javascript">
+	new Vue({
+		el:"#app",
+		data:{
+			tableData:[
+				{
+					u_id:"",
+					s_id:"",
+					p_name:"",
+					p_address:"",
+					u_name:"",
+					p_date:"",
+					p_type:"",
+				}
+			],
+			flag1:true,//获取订单
+		},
+		methods:{
+			getOrder(){
+				var that = this;
+				if(that.flag1) {
+					axios.post("/manage/queryOrder")
+							.then(function (response) {
+								if (response.data != null) {
+									that.flag1 = false;
+									that.tableData = response.data;
+								}
+							}, function (err) {
+								alert(err);
+							});
+				}
+			},
+			cancel(row){
+				var uid = row.u_id;
+				var id = row.s_id;
+				var date = row.p_date;
+				var type = row.p_type;
+				var that = this;
+				this.$confirm('是否退订此景点门票?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'success'
+				}).then(() => {
+					axios.post("/admincancelTicket","uid="+uid+"&sid="+id+"&date="+date+"&type="+type)
+							.then(function (response) {
+								if (response.data != null) {
+									that.tableData = response.data;
+									that.$message({
+										type: 'success',
+										message: '退票成功!',
+									});
+								}
+							}, function (err) {
+								alert(err);
+							});
+				}).catch(() => {
+					this.$message({
+						type: 'warning',
+						message: '取消退订'
+					});
+				});
+			},
+		}
+	})
+</script>
+</html>

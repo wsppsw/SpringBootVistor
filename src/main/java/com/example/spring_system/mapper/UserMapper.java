@@ -9,6 +9,7 @@ import java.util.List;
 @Mapper
 public interface UserMapper {
     public List<User> findalluser();
+    public User findbyuid(Integer u_id);
     public User findbyusername(String u_name);
     public User findbyuserphone(String u_phone);
     public int adduser(User user);

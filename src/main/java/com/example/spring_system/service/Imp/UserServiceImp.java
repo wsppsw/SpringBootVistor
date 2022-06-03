@@ -20,6 +20,11 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
+    public User findbyuid(Integer u_id) {
+        return userMapper.findbyuid(u_id);
+    }
+
+    @Override
     public User findbyusername(String u_name) {
         return userMapper.findbyusername(u_name);
     }

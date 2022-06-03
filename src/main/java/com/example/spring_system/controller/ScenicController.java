@@ -112,6 +112,12 @@ public class ScenicController {
         return "main/vue_man_query";
     }
 
+    //管理后台查票退票
+    @RequestMapping("/manage/order")
+    public String tomanageshoworder(){
+        return "main/vue_man_order";
+    }
+
     //编号查询
     @RequestMapping("/findsid")
     @ResponseBody

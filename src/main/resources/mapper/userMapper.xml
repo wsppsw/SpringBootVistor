@@ -6,6 +6,10 @@
     select * from t_user
     </select>
 
+    <select id="findbyuid" resultType="com.example.spring_system.domain.User" parameterType="Integer">
+        select * from t_user where u_id =#{u_id}
+    </select>
+
     <select id="findbyusername" resultType="com.example.spring_system.domain.User" parameterType="String">
     select * from t_user where u_name =#{u_name}
     </select>

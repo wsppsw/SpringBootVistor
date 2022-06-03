@@ -98,6 +98,32 @@ public class OrderController {
         return  array.toString();
     }
 
+    //后台所有的查看订票记录
+    @RequestMapping("/manage/queryOrder")
+    @ResponseBody
+    public String tomanqueryOrder(HttpServletRequest request) throws JSONException {
+        List<Order> list = null;
+        list = orderServiceImp.findallorder();
+        JSONArray array = new JSONArray();
+        if(list!=null){
+            for(int i=0;i<list.size();i++){
+                JSONObject jsonObject = new JSONObject();
+                Scenic scenic = scenicServiceImp.findbySid(list.get(i).getS_id());
+                User user = userServiceImp.findbyuid(list.get(i).getU_id());
+                jsonObject.put("u_id",list.get(i).getU_id());
+                jsonObject.put("s_id",scenic.getS_id());
+                jsonObject.put("p_name",scenic.getS_name());
+                jsonObject.put("p_address",scenic.getS_address());
+                jsonObject.put("u_name",user.getU_name());
+                jsonObject.put("p_date",list.get(i).getO_date().toLocaleString().substring(0,10));
+                jsonObject.put("p_type",list.get(i).getO_type());
+                array.put(jsonObject);
+            }
+        }
+        System.out.println(array);
+        return  array.toString();
+    }
+
     //退票
     @RequestMapping("/cancelTicket")
     @ResponseBody
@@ -121,6 +147,40 @@ public class OrderController {
                 jsonObject.put("s_id",scenic.getS_id());
                 jsonObject.put("p_name",scenic.getS_name());
                 jsonObject.put("p_address",scenic.getS_address());
+                jsonObject.put("p_date",list.get(i).getO_date().toLocaleString().substring(0,10));
+                jsonObject.put("p_type",list.get(i).getO_type());
+                array.put(jsonObject);
+            }
+        }
+        return array.toString();
+    }
+
+    //退票
+    @RequestMapping("/admincancelTicket")
+    @ResponseBody
+    public String tocanceladmincancelTicket(HttpServletRequest request) throws JSONException, ParseException {
+        String uids = request.getParameter("uid");
+        Integer uid = Integer.valueOf(uids);
+        String sid = request.getParameter("sid");
+        String sdate = request.getParameter("date");
+        String type = request.getParameter("type");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日");
+        Date date = formatter.parse(sdate);
+        SimpleDateFormat formatter1 = new SimpleDateFormat("yyyy-MM-dd");
+        String dates =formatter1.format(date);
+        orderServiceImp.deleteorder(uid,Integer.parseInt(sid),formatter1.parse(dates),type);
+        List<Order> list = orderServiceImp.findallorder();
+        JSONArray array = new JSONArray();
+        if(list!=null){
+            for(int i=0;i<list.size();i++){
+                JSONObject jsonObject = new JSONObject();
+                Scenic scenic = scenicServiceImp.findbySid(list.get(i).getS_id());
+                User user = userServiceImp.findbyuid(list.get(i).getU_id());
+                jsonObject.put("u_id",list.get(i).getU_id());
+                jsonObject.put("s_id",scenic.getS_id());
+                jsonObject.put("p_name",scenic.getS_name());
+                jsonObject.put("p_address",scenic.getS_address());
+                jsonObject.put("u_name",user.getU_name());
                 jsonObject.put("p_date",list.get(i).getO_date().toLocaleString().substring(0,10));
                 jsonObject.put("p_type",list.get(i).getO_type());
                 array.put(jsonObject);
