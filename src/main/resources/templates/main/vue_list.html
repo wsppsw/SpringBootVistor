@@ -117,7 +117,7 @@
       		Typeimg:"../img/qing.png",
       		Iframe:"/main/travel",
       		username:"登录",
-            city:"",
+            city:"北京市",
             wendu:"",
             weatype:"",
             fullscreenLoading:true,
@@ -190,7 +190,7 @@
                     axios.post("/city")
                         .then(function (response) {
                             that.flagcity=false;
-                            if (response.data != "\";v") {
+                            if (response.data != null) {
                                 that.city = response.data;
                             } else {
                                 that.city = "张家口";

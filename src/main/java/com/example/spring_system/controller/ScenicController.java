@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -123,7 +124,7 @@ public class ScenicController {
     @ResponseBody
     public Scenic toSenic(HttpServletRequest request){
         String id = request.getParameter("id");
-        System.out.println("获取编号"+id);
+       // System.out.println("获取编号"+id);
         sid=id;
         if(id.equals("")){
             id="1";
@@ -145,8 +146,8 @@ public class ScenicController {
     //城市地位
     @RequestMapping("/city")
     @ResponseBody
-    public String toCity(){
-        String urls="http://ip.ws.126.net/ipquery?ie=utf-8";
+    public String toCity() throws JSONException {
+       /* String urls="http://ip.ws.126.net/ipquery?ie=utf-8";
         StringBuffer result = new StringBuffer();
         try {
             URL url = new URL(urls);
@@ -163,6 +164,50 @@ public class ScenicController {
             e.printStackTrace();
         }
         String city=result.toString().substring(18,21);
+        return city;*/
+        //容错处理
+        String urls="http://ip.ws.126.net/ipquery?ie=utf-8";
+        String code ="";
+        StringBuffer result = new StringBuffer();
+        try {
+            URL url = new URL(urls);
+            URLConnection conn = url.openConnection();
+            HttpURLConnection httpUrlConnection = (HttpURLConnection) conn;
+            httpUrlConnection.setConnectTimeout(300000);
+            httpUrlConnection.setReadTimeout(300000);
+            httpUrlConnection.connect();
+            code = new Integer(httpUrlConnection.getResponseCode()).toString();
+            BufferedReader in = null;
+            if(code.equals("200")){
+                in = new BufferedReader(new InputStreamReader(conn.getInputStream(),"GBk"));
+            }else {
+                urls = "http://api.map.baidu.com/location/ip?ak=vE5EkHqq2Q6wMRIdX8FSGChnEKj982mw";
+                URL url1 = new URL(urls);
+                URLConnection conns = url1.openConnection();
+                in = new BufferedReader(new InputStreamReader(conns.getInputStream(),"utf-8"));
+            }
+            //String message = httpUrlConnection.getResponseMessage();
+            // System.out.println("getResponseCode code ="+ code);
+            String line;
+            while((line = in.readLine()) != null){
+                result.append(line);
+            }
+            in.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        JSONObject jsonObject = null;
+        String city = "";
+        if(code.equals("200")){
+            String[] data = result.toString().split("=");
+            jsonObject = new JSONObject(data[3]);
+            city = jsonObject.get("city").toString();
+        }else {
+            jsonObject = new JSONObject(result.toString());
+            city = jsonObject.getJSONObject("content").getJSONObject("address_detail").getString("city");
+        }
         return city;
     }
 
@@ -204,7 +249,7 @@ public class ScenicController {
         arr[2]=object1.getString("wendu")+"℃";
         JSONObject jsonObject2 = array.getJSONObject(0);
         String type=jsonObject2.getString("type").toString();
-        System.out.println(type);
+        System.out.println(type+"--"+arr[2]);
         JSONObject obj = new JSONObject();
         obj.put("wendu",arr[2]);
         obj.put("type",type);
@@ -217,7 +262,7 @@ public class ScenicController {
     public String toweatherFive(HttpServletRequest request) throws JSONException {
         String city = null;
         city =request.getParameter("scity");
-        System.out.println("初次景点城市定位："+city);
+        //System.out.println("初次景点城市定位："+city);
         if(city.equals("undefined")){
             Scenic scenic = scenicServiceImp.findbySid(Integer.parseInt(sid));
             city=scenic.getS_city();
