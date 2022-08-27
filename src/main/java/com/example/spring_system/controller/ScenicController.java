@@ -147,26 +147,8 @@ public class ScenicController {
     @RequestMapping("/city")
     @ResponseBody
     public String toCity() throws JSONException {
-       /* String urls="http://ip.ws.126.net/ipquery?ie=utf-8";
-        StringBuffer result = new StringBuffer();
-        try {
-            URL url = new URL(urls);
-            URLConnection conn = url.openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(),"GBK"));
-            String line;
-            while((line = in.readLine()) != null){
-                result.append(line);
-            }
-            in.close();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String city=result.toString().substring(18,21);
-        return city;*/
         //容错处理
-        String urls="http://ip.ws.126.net/ipquery?ie=utf-8";
+        String urls="http://api.map.baidu.com/location/ip?ak=vE5EkHqq2Q6wMRIdX8FSGChnEKj982mw";
         String code ="";
         StringBuffer result = new StringBuffer();
         try {
@@ -179,12 +161,9 @@ public class ScenicController {
             code = new Integer(httpUrlConnection.getResponseCode()).toString();
             BufferedReader in = null;
             if(code.equals("200")){
-                in = new BufferedReader(new InputStreamReader(conn.getInputStream(),"GBk"));
+                in = new BufferedReader(new InputStreamReader(conn.getInputStream(),"utf-8"));
             }else {
-                urls = "http://api.map.baidu.com/location/ip?ak=vE5EkHqq2Q6wMRIdX8FSGChnEKj982mw";
-                URL url1 = new URL(urls);
-                URLConnection conns = url1.openConnection();
-                in = new BufferedReader(new InputStreamReader(conns.getInputStream(),"utf-8"));
+               return "false";
             }
             //String message = httpUrlConnection.getResponseMessage();
             // System.out.println("getResponseCode code ="+ code);
@@ -200,14 +179,10 @@ public class ScenicController {
         }
         JSONObject jsonObject = null;
         String city = "";
-        if(code.equals("200")){
-            String[] data = result.toString().split("=");
-            jsonObject = new JSONObject(data[3]);
-            city = jsonObject.get("city").toString();
-        }else {
-            jsonObject = new JSONObject(result.toString());
-            city = jsonObject.getJSONObject("content").getJSONObject("address_detail").getString("city");
-        }
+
+        jsonObject = new JSONObject(result.toString());
+        city = jsonObject.getJSONObject("content").getJSONObject("address_detail").getString("city");
+
         return city;
     }
 
